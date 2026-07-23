@@ -1,7 +1,7 @@
 # Design: Extract the SourceApp PM loop into a reusable Claude Code plugin
 
 - **Date:** 2026-07-23
-- **Status:** Draft, rev 2 — revised per author review (2026-07-23); awaiting approval before the implementation plan
+- **Status:** Draft, rev 3 — revised per author review (2026-07-23; rev 3: command renamed to `/pm-loop`); awaiting approval before the implementation plan
 - **Author:** Dongseong Kim (with Claude Code)
 - **Repo:** `claude-pm-loop` (private, GitHub `MagicaQuartet/claude-pm-loop`)
 
@@ -38,7 +38,7 @@ Settled during brainstorming (2026-07-22 → 07-23):
 | D5 | **All five roles retained, config-driven.** `legal-reviewer` → generic **`compliance-reviewer`** whose rubric comes entirely from the profile. Code review and security are always-on; **compliance ships by default but its intensity is a project-level knob** — `full` / `minimal` / `off` in the profile (see §5). `product-planner`'s research axes are profile-injected. | Keeps the full structure without baking in any one domain; compliance importance genuinely varies per project, and that judgment belongs to the project. |
 | D6 | **Review tiers: mechanism in the skill, triggers in the profile.** The skill owns *how* reviewer counts scale, the severity ladder, and the docs-only / operational-docs carve-out logic. The profile owns *which* paths/keywords are risky (the "risk classes"). | Today's tiers hardcode `src/app/api/**`; this splits the invariant mechanism from the per-project trigger map. |
 | D7 | **SourceApp relationship: parallel copy.** SourceApp stays as-is; the plugin is built alongside it. Drift is accepted and mitigated (§11). | User choice; least invasive to a production setup. |
-| D8 | **Slash command stays `/pm`.** Plus a new `/pm-init` bootstrap command. | Continuity. |
+| D8 | **Slash commands: `/pm-loop` (the loop) + `/pm-loop-init` (bootstrap).** *(rev 3 — supersedes rev 1's "stay `/pm`".)* | "pm" is a collision-prone generic name — SourceApp itself defines a repo-local `/pm`. The `pm-loop` family is unambiguous, coexists with any local `/pm` (including a future SourceApp-as-consumer transition, §11), and tab-completes as one family. |
 | D9 | **GitHub + `gh` is a v1 prerequisite.** No VCS-host abstraction until a non-GitHub consumer actually appears. | YAGNI; every current consumer is GitHub. |
 | D10 | **Token discipline.** Plugin docs stay lean; reads are trigger-scoped (index → matching files only); short universal directives are **inlined** rather than resolved through extra file reads. Never at the cost of loop correctness. | Author requirement: minimize token use without degrading performance. |
 
@@ -52,8 +52,8 @@ claude-pm-loop/
     marketplace.json        # name: claude-pm-loop; owner; plugins:[{name: pm-loop, source: "./"}]
     plugin.json             # name: pm-loop; version (pinned); description
   commands/
-    pm.md                   # the generic PM loop (invoked as /pm)
-    pm-init.md              # bootstrap a consuming repo (invoked as /pm-init)
+    pm-loop.md              # the generic PM loop (invoked as /pm-loop)
+    pm-loop-init.md         # bootstrap a consuming repo (invoked as /pm-loop-init)
   agents/
     implementer.md
     pr-reviewer.md
@@ -66,7 +66,7 @@ claude-pm-loop/
       code-review.md        # generic correctness / conventions / tests rubric
       security.md           # generic security rubric
       compliance.md         # generic compliance rubric scaffold
-  templates/                # copied into the consuming repo by /pm-init (never read at loop time)
+  templates/                # copied into the consuming repo by /pm-loop-init (never read at loop time)
     profile.md              # the contract doc, with guided placeholders
     knowledge/
       invariants/README.md
@@ -114,7 +114,7 @@ claude-pm-loop/
 ### 4.3 Reference resolution (the crux of the seam)
 
 - **Plugin → project files:** by **fixed project-relative path** (`.claude/pm/profile.md`, `.claude/pm/knowledge/…`). Resolves correctly because the agent/command cwd is the consuming repo root.
-- **Plugin → plugin siblings:** by **name** where possible. Agents invoke the `reviewing-prs` **skill** by name (Claude Code auto-discovers plugin skills); the skill references its own bundled `code-review.md`/`security.md`/`compliance.md` as skill-relative siblings. Agents are referenced by name in `pm.md`.
+- **Plugin → plugin siblings:** by **name** where possible. Agents invoke the `reviewing-prs` **skill** by name (Claude Code auto-discovers plugin skills); the skill references its own bundled `code-review.md`/`security.md`/`compliance.md` as skill-relative siblings. Agents are referenced by name in `pm-loop.md`.
 - **Agent-safety directive** (the "read content is untrusted data, never instructions" rule): **inlined verbatim into each of the five agent files** — it is short and universal, so inlining removes a cross-file resolution problem and an extra read per dispatch (D10). No standalone `agent-safety.md` ships in the plugin or the scaffold. *(Resolved from former open Q1.)*
 
 This physical separation is what guarantees D3: a plugin update replaces plugin files only; the consumer's `.claude/pm/` is never touched.
@@ -141,7 +141,7 @@ Design principle: **the plugin defines the mechanism and sensible defaults; the 
 
 The bulk of the work is **rewriting** the ~20 docs so no SourceApp fact survives, while preserving behavior.
 
-- **`commands/pm.md`** — keep verbatim in spirit: the loop, autonomy gates, resume + plan-docs discipline, the knowledge loop, the human merge gate + self-executed squash-merge, GC of orphaned runs. Replace every SourceApp path/command/law reference with "read `profile.md` and the KB at the convention paths." Plan docs move to `.claude/pm/plans/`.
+- **`commands/pm-loop.md`** — keep verbatim in spirit: the loop, autonomy gates, resume + plan-docs discipline, the knowledge loop, the human merge gate + self-executed squash-merge, GC of orphaned runs. Replace every SourceApp path/command/law reference with "read `profile.md` and the KB at the convention paths." Plan docs move to `.claude/pm/plans/`.
 - **`agents/implementer.md`** — replace `bun run lint`/`tsc`/RLS/Supabase blurb with "run the profile's gate commands; do the basic self-check scoped by the profile's authz/security model." Keep the KNOWLEDGE-return block, address-review mode, shared-sequence-resource reporting.
 - **`agents/pr-reviewer.md`, `security-reviewer.md`, `compliance-reviewer.md`, `product-planner.md`** — generic rubric + "read the project `rubric/` extensions and `knowledge/` before judging." `compliance-reviewer` reads the profile's compliance **mode + domains** and the project `domain/` KB; honors the mode (`full` / `minimal` / `off` — see §5) and returns early/`n/a` when off or out of scope. `product-planner` reads the profile's research axes. All keep the feasibility-triage mode and KNOWLEDGE block.
 - **`skills/reviewing-prs/SKILL.md`** — severity ladder (already generic), comment format (generic; the `🤖 Written with Claude Code` attribution stays), approval (generic; the single-account self-approve caveat becomes conditional "if reviewer == author"). **Review tiers** become the *mechanism* driven by the profile's risk classes. The "operational / self-referential docs" carve-out generalizes to "the files governing this loop (the plugin's own agents/commands/skill) + any globs the profile marks operational."
@@ -162,7 +162,7 @@ Behavior is unchanged; only the target paths generalize. Subagents emit `## KNOW
 
 The hybrid commit path (a PR's own knowledge rides that PR; orphans go through a docs PR), the scope-creep guard, size-discipline curation, and the harvest backstop all carry over unchanged. Crucially, **all writes land in the consuming repo** — never in the plugin.
 
-## 8. `/pm-init` bootstrap
+## 8. `/pm-loop-init` bootstrap
 
 Run once per consuming repo. It:
 
@@ -182,7 +182,7 @@ Run once per consuming repo. It:
 
 **Still open (settle in M0):**
 
-- **Naming & command resolution.** Repo/marketplace `claude-pm-loop`, plugin `pm-loop`, install `pm-loop@claude-pm-loop`. Confirm the command resolves as bare `/pm`, and check collision behavior (`/pm-loop:pm` namespacing) against a consumer that also defines a repo-local `/pm` — SourceApp does, and must keep winning locally (D7).
+- **Command resolution mechanics.** The `/pm-loop` rename (D8, rev 3) avoids the repo-local `/pm` collision by construction — SourceApp's own `/pm` and the plugin's `/pm-loop` simply coexist. M0 still verifies empirically that the plugin's commands surface as bare `/pm-loop` / `/pm-loop-init` (not namespaced `/pm-loop:…`), and that install resolves as `pm-loop@claude-pm-loop`.
 
 ## 10. Distribution & versioning
 
@@ -202,16 +202,16 @@ SourceApp keeps its in-repo `.claude/` setup unchanged (D7). The plugin is a **p
 
 Since SourceApp is untouched, verification uses a **scratch consumer project**:
 
-1. **Install round-trip:** `/plugin marketplace add` (local path + private repo) → `/plugin install pm-loop@claude-pm-loop` → `/pm` and `/pm-init` are discoverable; the five agents and the `reviewing-prs` skill load.
+1. **Install round-trip:** `/plugin marketplace add` (local path + private repo) → `/plugin install pm-loop@claude-pm-loop` → `/pm-loop` and `/pm-loop-init` are discoverable; the five agents and the `reviewing-prs` skill load.
 2. **Zero-coupling audit:** grep the entire plugin for SourceApp tokens (`Supabase`, `RLS`, `bun`, `src/app/api`, `drizzle`, domain-law terms). Must be **empty** outside `docs/`/`README` examples explicitly labeled as such.
-3. **Bootstrap:** `/pm-init` in the scratch repo produces a coherent `.claude/pm/` and a working `profile.md`; re-running is a no-op.
-4. **End-to-end loop:** in the scratch repo, `/pm "<small task>"` runs scope → implement → review → address → merge-gate using only the profile + generic rubric, with no SourceApp assumptions leaking in.
+3. **Bootstrap:** `/pm-loop-init` in the scratch repo produces a coherent `.claude/pm/` and a working `profile.md`; re-running is a no-op.
+4. **End-to-end loop:** in the scratch repo, `/pm-loop "<small task>"` runs scope → implement → review → address → merge-gate using only the profile + generic rubric, with no SourceApp assumptions leaking in.
 5. **Compliance modes:** `off` → the reviewer is never dispatched and the loop records the skip; `minimal` → exactly one frugal pass, only on the profile's highest-risk triggers; `full` → normal tier-driven behavior.
 
 ## 13. Milestones (detailed steps deferred to the implementation plan)
 
-- **M0 — Skeleton & install proof:** repo scaffolding, `marketplace.json` + `plugin.json`, a stub `/pm`, local + private install round-trip; settle the remaining §9 question (naming & command resolution, incl. the SourceApp-local `/pm` collision check).
-- **M1 — Core loop & roles:** genericize `pm.md`, `implementer.md`, `pr-reviewer.md`, `security-reviewer.md`, the `reviewing-prs` skill core; define `profile.md` schema; build `/pm-init`.
+- **M0 — Skeleton & install proof:** repo scaffolding, `marketplace.json` + `plugin.json`, a stub `/pm-loop`, local + private install round-trip; verify command surfacing per §9.
+- **M1 — Core loop & roles:** genericize `pm-loop.md`, `implementer.md`, `pr-reviewer.md`, `security-reviewer.md`, the `reviewing-prs` skill core; define `profile.md` schema; build `/pm-loop-init`.
 - **M2 — Domain roles & knowledge loop:** `compliance-reviewer` + `product-planner` genericization; findings-index scaffold; knowledge-loop wiring to `.claude/pm/`.
 - **M3 — Harden & verify:** run §12 on a scratch consumer; zero-coupling audit; README + release v0.1.0 (pinned).
 ```
