@@ -180,9 +180,9 @@ Run once per consuming repo. It:
 - **`${CLAUDE_PLUGIN_ROOT}` in markdown bodies** → **mooted** by the above: every remaining cross-reference is name-based (skills, agents) or project-relative (`.claude/pm/…`), so the plugin needs no plugin-root paths at all. Verify interpolation empirically only if a future need appears.
 - **`gh` assumption** → promoted to locked decision **D9** (GitHub-only v1).
 
-**Still open (settle in M0):**
+**Resolved in M0 (2026-07-23, install round-trip on the local-path marketplace):**
 
-- **Command resolution mechanics.** The `/pm-loop` rename (D8, rev 3) avoids the repo-local `/pm` collision by construction — SourceApp's own `/pm` and the plugin's `/pm-loop` simply coexist. M0 still verifies empirically that the plugin's commands surface as bare `/pm-loop` / `/pm-loop-init` (not namespaced `/pm-loop:…`), and that install resolves as `pm-loop@claude-pm-loop`.
+- **Command resolution mechanics.** `/plugin marketplace add <local path>` → `/plugin install pm-loop@claude-pm-loop` both succeeded. Both commands are discoverable in the command menu (`pm-loop`, `pm-loop-init`); the fully-qualified form is namespaced `/pm-loop:pm-loop` (plugin-name:command-name). Invocation printed the M0 stub as expected. Coexistence confirmed: SourceApp's repo-local `/pm` remains available on the same machine alongside the plugin's commands — no collision. Naming stands as designed (D8); the redundant-looking `pm-loop:pm-loop` appears only in the fully-qualified form.
 
 ## 10. Distribution & versioning
 

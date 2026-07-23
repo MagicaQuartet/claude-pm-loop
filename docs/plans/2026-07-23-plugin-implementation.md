@@ -811,9 +811,10 @@ Branch: `feat/m3-release` off updated `main`. One PR at the end of Task 13.
    /plugin marketplace add /path/to/claude-pm-loop        # or a local clone
    /plugin install pm-loop@claude-pm-loop
    ```
+   Plus a short **"Using on another device"** subsection: installs are per-user (machine-global — every project on that device gets `/pm-loop`) and cached under `~/.claude/plugins/` (no network per session); on a new machine, authenticate (`gh auth login` or SSH key) → run the same two commands.
 4. Quick start: `/pm-loop-init` (what it scaffolds, what it asks) → commit the scaffold → `/pm-loop <task>`.
 5. The profile: a table of the nine sections, one line each, marked required/optional.
-6. How updates work: pinned version, manual `/plugin marketplace update claude-pm-loop`; `.claude/pm/` is yours and never touched by updates.
+6. How updates work: pinned version, manual `/plugin marketplace update claude-pm-loop`; `.claude/pm/` is yours and never touched by updates. Include the `extraKnownMarketplaces` snippet (spec §10) a consuming repo can commit to `.claude/settings.json` for one-step onboarding on any device.
 7. Design docs pointer: `docs/specs/`.
 
 - [ ] **Step 2: Run the gate — expect PASS. Commit.**
@@ -848,6 +849,7 @@ gh repo create pm-loop-scratch --private --source . --push   # requires human OK
 3. `/pm-loop-init` in the scratch repo (gate command: `./test.sh` blocking; risk classes: empty; compliance: `off`) → coherent `.claude/pm/`; re-run → all-skipped no-op.
 4. E2E: `/pm-loop "add a goodbye.txt with the word goodbye and cover it in test.sh"` → watch scope → issue → implementer PR → reviews (2 code + 1 security; compliance skip recorded) → address → merge-gate report → human go → merge.
 5. Compliance modes: confirm the `off` skip was recorded in run docs; flip the scratch profile to `minimal`, run a trivial `/pm-loop` task, confirm exactly one frugal compliance pass.
+6. **Pre-public scrub (release gate — required before the repo is EVER made public or shared beyond the owner):** a grep of `main` for the owner's machine/org identifiers must come back empty. Today the committed plan doc carries absolute machine paths (functional for subagent execution; acceptable only while the repo stays private). Scrub or relocate them before any visibility change.
 
 Fix every failure on this branch (fix-forward; re-run the affected criterion). Append a dated "§12 acceptance results" note to the spec.
 
