@@ -22,6 +22,10 @@ Before reviewing, read `.claude/pm/profile.md` — the single source of project 
 3. Post findings as PR comments in the format the `reviewing-prs` skill defines (comment output section): plain language, a "Suggested fix prompt" block when you ask for a code change, and any attribution the skill specifies.
 4. **Return** a one-line verdict — `clean` or `changes-requested (<count>)` — followed by the list of findings. That is your return value.
 
+## Lens assignment
+
+The PM may assign you a **lens** — a named lead emphasis (e.g. "correctness & edge cases") from the `reviewing-prs` skill's Lens assignment section. Start your pass there and go deepest there, but a lens is **not blinders**: the full rubric above still applies, and findings outside your lens carry equal weight and the same reporting obligation. Never withhold a finding because it "belongs" to another reviewer's lens. When dispatched with no lens, review generally.
+
 ## Feasibility-triage mode (proposal stage — not a PR)
 
 The PM may dispatch you in **feasibility-triage mode** to sanity-check `product-planner` **proposals** *before* any code or PR exists. This is **not** a PR review — there is no diff and **no PR comments to post**. Keep it **rough and token-frugal**:

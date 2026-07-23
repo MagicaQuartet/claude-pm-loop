@@ -66,6 +66,8 @@ Baseline when no class matches: 2 code-reviewers, security 1, compliance per
 its mode below. Operational-docs globs (files that govern this loop and thus
 never count as "docs-only"): <!-- e.g. .claude/pm/** — add your own -->
 
+Light tier: on <!-- or off — when on (default), a diff matching no risk class and ≤50 changed lines across ≤3 files (no dependency/schema/auth/CI changes) gets 1 code-reviewer; see the skill's Review tiers -->
+
 ## Compliance
 
 _Required._
@@ -88,3 +90,17 @@ _Optional (product-planner uses sensible defaults if absent)._ What the
 product-planner grounds proposals in: vision doc(s), where to see existing
 features, reference products, and the domain knowledge base at
 `.claude/pm/knowledge/domain/`.
+
+## Review diversity
+
+_Optional (delete if unused — absent means every review agent inherits the
+session model, exactly the default behavior)._ Per-org model overrides for
+review dispatch. Mix **comparable-tier** models only: a noticeably weaker
+reviewer files noise findings, and the severity ladder resolves disagreement
+upward. If a named model is unavailable at dispatch, the PM falls back to
+inherit and records the fallback in the run doc.
+
+<!-- e.g.:
+- pr-reviewer: <model-name>
+- security-reviewer: <model-name>
+-->

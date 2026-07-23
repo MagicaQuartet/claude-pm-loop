@@ -71,7 +71,7 @@ and run the same two commands above.
 ## The profile
 
 `.claude/pm/profile.md` is the single source of project truth every pm-loop
-agent reads first. Nine sections, each required or optional:
+agent reads first. Ten sections, each required or optional:
 
 | Section | Required? | Purpose |
 |---|---|---|
@@ -84,6 +84,23 @@ agent reads first. Nine sections, each required or optional:
 | Compliance | Required | Compliance mode (`full`/`minimal`/`off`) and the domains it covers. |
 | Tooling | Required | Issue tracker, issue templates, labels/conventions. |
 | Planner research axes | Optional | What the `product-planner` grounds its proposals in. |
+| Review diversity | Optional | Per-org reviewer model overrides; absent = every review agent inherits the session model. |
+
+## Deterministic guardrails
+
+The plugin ships a `PreToolUse` hook that watches Bash commands in
+pm-loop-managed repos (those with `.claude/pm/profile.md`) and forces a
+harness permission prompt — even in accept-edits mode — at the moment a merge
+or history-rewriting push actually runs: `gh pr merge`,
+`gh api …/pulls/<n>/merge`, or `git push` with
+`--force`/`--force-with-lease`/`-f`.
+
+Expect one prompt per merge, *after* your chat-level "go": chat approval is
+not machine-verifiable, so the execution-time prompt is the hard gate — the
+double confirm is intentional. Caveats: this is defense-in-depth, not a
+security boundary — it matches command patterns, and `bypassPermissions`
+weakens it. Repos without a pm-loop profile are unaffected; the hook stays
+silent there.
 
 ## How updates work
 

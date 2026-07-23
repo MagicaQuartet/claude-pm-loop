@@ -32,7 +32,33 @@ Mechanical, not "PM-sized by feel" — the PM derives each org's count from the 
 
 **"Docs-only PR"** — a PR confined to prose docs with no code, dependency, or config changes — gets a carve-out: **1 code-reviewer**, and **security may skip** (both recorded in the run doc with why). **Caveat:** this never applies to *operational* docs — any in-repo copies of loop-governing docs, everything under `.claude/pm/`, and the profile's own operational-docs globs (declared under `## Risk classes`) — a change there is never "docs-only": it keeps **≥2 code-reviewers** and **≥1 narrowly-scoped security reviewer** (scope: "did this change remove or weaken security-relevant guidance?"), because a single reviewer on a self-referential process change can miss what a second one catches.
 
+**Light tier (small no-risk diffs).** A PR runs at the light tier only when ALL hold (record the tier and the measured numbers in the run doc): no risk class matches the diff (neither path nor keyword signal); the diff is **≤ 50 changed lines** (additions + deletions) across **≤ 3 files**; it touches no dependency manifest, schema/migration, auth/authz code, or CI/tool config; and the operational-docs caveat above does not apply (that caveat always wins). Staffing: **1 code-reviewer** (full rubric, including basic security detection), **security may skip** (recorded with why), compliance per the profile's `## Compliance` mode. **Escalation:** if the single reviewer files any blocker or major, or judges the light-tier criteria misapplied, the PM re-runs the review at baseline and records it. A profile may disable the tier with a `Light tier: off` line under `## Risk classes` (default: on).
+
 When in doubt, scale **up**: an unnecessary reviewer is cheap, a missed class of defect is not.
+
+## Re-review scope
+
+After an address round, the default re-review is **delta-scoped**: verify each actionable finding's resolution, and review only the diff between the previously reviewed head and the new head (`git diff <reviewed-sha>...<new-head>`), dispatched to **one reviewer per org that raised the addressed findings**. Run a **full re-review at the PR's original tier** when any of these holds: the address-round delta matches a risk class (path or keyword); the delta exceeds the light-tier size limits (> 50 changed lines or > 3 files); or the address round changed files outside the scope of the findings being addressed. Record the scope decision in the run doc.
+
+## Lens assignment
+
+When the tier yields **N ≥ 2 code-reviewers**, the PM assigns reviewer *i* lens *i* from this ordered list (cycling when N > 4) and passes the lens in the dispatch prompt:
+
+1. correctness & edge cases
+2. API contracts & cross-module consistency
+3. test adequacy & spec fidelity
+4. maintainability & conventions
+
+A lens is a **lead emphasis, not blinders**: the full rubric still applies to every reviewer, and out-of-lens findings carry equal weight and equal reporting obligation. The PM records the lens map in the run doc.
+
+## Adversarial pass
+
+Mechanical, not discretionary. Run **one** adversarial pass — at most one per review round — when either trigger holds:
+
+- **(a)** the initial review round of a PR whose tier yields **≥ 3 code-reviewers**;
+- **(b)** a **blocker** finding on which orgs disagree about severity, or which the PM proposes to downgrade — the pass runs before the severity is resolved (consistent with the no-unilateral-downgrade rule in the Severity ladder).
+
+The pass is one `pr-reviewer` instance dispatched with the consolidated top findings and the mandate: *refute or confirm each, and hunt for what every reviewer missed.* Its findings join the union under the normal severity ladder.
 
 ## Code review
 
