@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the `pm-loop` Claude Code plugin — a project-agnostic extraction of SourceApp's supervised multi-agent PM loop — per the approved spec `docs/specs/2026-07-23-pm-loop-plugin-extraction-design.md` (rev 3).
+**Goal:** Build the `pm-loop` Claude Code plugin — a project-agnostic extraction of the **source project**'s supervised multi-agent PM loop (the project it was first built in) — per the approved spec `docs/specs/2026-07-23-pm-loop-plugin-extraction-design.md` (rev 3).
 
 **Architecture:** Thin immutable plugin (commands + agents + skills + templates) that reads all project-specific truth from the consuming repo's `.claude/pm/` (profile, knowledge base, findings, rubric extensions). Every artifact is a Markdown doc or JSON manifest; "tests" are a committed structural/zero-coupling gate script plus human-checkpoint install verifications.
 
@@ -13,7 +13,7 @@
 Copied from the spec's locked decisions — every task implicitly includes these:
 
 - **D2:** Private distribution; **pin `version` in `plugin.json`**; manual updates only.
-- **D3:** Plugin content is 100% generic. All mutable/project content lives in the consumer's `.claude/pm/`. Plugin files never reference SourceApp facts.
+- **D3:** Plugin content is 100% generic. All mutable/project content lives in the consumer's `.claude/pm/`. Plugin files never reference source-project facts.
 - **D4:** No stack assumptions — no `bun`/`npm`/TS/Supabase/RLS/`src/` anywhere in shipped plugin content. Gate commands, branch model, architecture come from the profile.
 - **D5:** Five roles; compliance has a `full` / `minimal` / `off` mode read from the profile.
 - **D6:** Review-tier *mechanism* lives in the skill; risk-class *triggers* live in the profile.
@@ -21,10 +21,10 @@ Copied from the spec's locked decisions — every task implicitly includes these
 - **D9:** GitHub + `gh` is a documented prerequisite.
 - **D10:** Token discipline: lean docs, trigger-scoped reads, short universal directives inlined.
 - **Zero-coupling audit (spec §12.2):** `grep -riE 'supabase|drizzle|\brls\b|\bbun\b|\bbunx\b|src/app/api|src/db/schema' commands agents skills templates` must return nothing.
-- **Repo workflow:** work branches off `main`, one branch + PR per milestone (M0–M3), squash-merge on **explicit human approval** (never merge unprompted). Commits: gitmoji `<emoji>: [<scope>] <title>`, English. All `git`/`gh` runs use the personal-account isolation already configured (SSH alias `github.com-personal`, `GH_CONFIG_DIR`).
+- **Repo workflow:** work branches off `main`, one branch + PR per milestone (M0–M3), squash-merge on **explicit human approval** (never merge unprompted). Commits: gitmoji `<emoji>: [<scope>] <title>`, English. All `git`/`gh` runs use whatever personal-account isolation is configured on the current machine (e.g. an SSH host alias for the personal account, a dedicated `GH_CONFIG_DIR`).
 - **Canonical consumer paths** (exact strings, used identically across all docs): `.claude/pm/profile.md`, `.claude/pm/knowledge/invariants/`, `.claude/pm/knowledge/gotchas/`, `.claude/pm/knowledge/domain/`, `.claude/pm/knowledge/decisions.md`, `.claude/pm/knowledge/team-learnings.md`, `.claude/pm/findings/index.md`, `.claude/pm/rubric/code-review.md`, `.claude/pm/rubric/security.md`, `.claude/pm/rubric/compliance.md`, `.claude/pm/plans/`.
 - **Canonical profile headings** (defined in Task 4; every later doc references them verbatim): `## Project`, `## VCS`, `## Quality gate`, `## Architecture map`, `## Security model`, `## Risk classes`, `## Compliance`, `## Tooling`, `## Planner research axes`.
-- **Source material:** the SourceApp originals live at `<source-project>/.claude/` (read-only reference). Generalization tasks name their exact source file.
+- **Source material:** the source-project originals live under that repo's `.claude/` directory (read-only reference, checked out on the original dev machine; written `<source-project>/.claude/…` below). Generalization tasks name their exact source file.
 
 **The canonical inlined agent-safety paragraph** — appears verbatim (word-for-word identical) in all five agent files, as the second paragraph of each:
 
@@ -47,7 +47,8 @@ Branch: `feat/m0-skeleton` off `main`. One PR at the end of Task 3.
 - [ ] **Step 1: Create the branch**
 
 ```bash
-cd <path-to>/claude-pm-loop && git checkout -b feat/m0-skeleton main
+# from the repo root
+git checkout -b feat/m0-skeleton main
 ```
 
 - [ ] **Step 2: Write the gate script**
@@ -77,7 +78,7 @@ for f in "${required[@]}"; do
 done
 
 # 3. Zero-coupling audit — shipped plugin content must be project-agnostic.
-#    docs/ and README.md are exempt (may cite SourceApp as labeled examples).
+#    docs/ and README.md are exempt (may describe the extraction origin as labeled examples).
 pattern='supabase|drizzle|\brls\b|\bbun\b|\bbunx\b|src/app/api|src/db/schema'
 if grep -rinE "$pattern" commands agents skills templates 2>/dev/null; then
   echo "FAIL: project-specific token found in plugin content (see above)"; fail=1
@@ -200,14 +201,14 @@ EOF
 
 - [ ] **Step 1: Ask the human to run the install round-trip**
 
-Ask the user to run, in any Claude Code session (e.g. a scratch directory, NOT SourceApp):
+Ask the user to run, in any Claude Code session (e.g. a scratch directory, NOT the source project):
 
 ```
-/plugin marketplace add <path-to>/claude-pm-loop
+/plugin marketplace add <absolute-path-to-this-repo-checkout>
 /plugin install pm-loop@claude-pm-loop
 ```
 
-then confirm: (a) both commands appear in the `/` menu, (b) they appear as bare `/pm-loop` and `/pm-loop-init` (record if any `pm-loop:` namespacing shows), (c) invoking `/pm-loop` prints the stub text. Also ask them to run it once in a repo that defines a local `/pm` (SourceApp) to confirm coexistence.
+then confirm: (a) both commands appear in the `/` menu, (b) they appear as bare `/pm-loop` and `/pm-loop-init` (record if any `pm-loop:` namespacing shows), (c) invoking `/pm-loop` prints the stub text. Also ask them to run it once in a repo that defines a local `/pm` (the source project) to confirm coexistence.
 
 - [ ] **Step 2: Record the outcome in the spec**
 
@@ -511,16 +512,16 @@ Read the source top to bottom; keep its structure and rules **verbatim in spirit
 |---|---|
 | Frontmatter | `name: pm-loop`; description = stub's description; keep `argument-hint`. |
 | Intro ("You are the PM… read issues.md/git-conventions.md/pull-requests.md first") | New first section `## Profile first`: read `.claude/pm/profile.md` before anything; if missing → stop and tell the human to run `/pm-loop-init`. All VCS/issue/PR conventions come from the profile's `## VCS` and `## Tooling`. Keep "you are the only fan-out point; subagents never spawn subagents." |
-| `## Resume first` (plan-doc scan, progressive read, lane ownership, GC of orphaned runs) | Keep whole section; every `.claude/docs/plans/` → `.claude/pm/plans/`. Drop SourceApp PR-number examples (e.g. "#380"); keep the live-session signals list verbatim. |
+| `## Resume first` (plan-doc scan, progressive read, lane ownership, GC of orphaned runs) | Keep whole section; every `.claude/docs/plans/` → `.claude/pm/plans/`. Drop source-project PR-number examples; keep the live-session signals list verbatim. |
 | `## Autonomy` (gates: merge / destructive / infra; decide-don't-ask; SendMessage unblocking) | Keep verbatim; replace "`develop`" with "the profile's base branch"; keep the Korean example phrases ("머지해줘") as examples of an explicit go — they are conversational, not project coupling. |
 | `## Plan docs` | Keep verbatim; paths → `.claude/pm/plans/`; keep stopped-agent resume via SendMessage + agentId. |
-| `## Knowledge` (capture → triage → commit → harvest backstop → curate) | Keep the five numbered responsibilities. Routing table becomes: `invariant` → `.claude/pm/knowledge/invariants/…`; `recurring-finding` → `.claude/pm/findings/…` (+ matching invariant); `gotcha` → `.claude/pm/knowledge/gotchas/…`; `decision` → `.claude/pm/knowledge/decisions.md` (dated, supersede-don't-delete); `domain` → `.claude/pm/knowledge/domain/…`; `process` → the profile / a rubric extension / `team-learnings.md`. Keep the hybrid commit path (own-knowledge-rides-the-PR, orphan fallback PR, scope-creep guard), never-record-secrets, and the ~5,000-word split-when-bloated rule (its output pattern is "index + per-domain files", pointing at `findings/index.md` as the example). Drop SourceApp PR numbers (#157/#169/#170) and `git add -f` (a SourceApp-gitignore artifact) — say "commit the knowledge-doc edits in that same PR". |
+| `## Knowledge` (capture → triage → commit → harvest backstop → curate) | Keep the five numbered responsibilities. Routing table becomes: `invariant` → `.claude/pm/knowledge/invariants/…`; `recurring-finding` → `.claude/pm/findings/…` (+ matching invariant); `gotcha` → `.claude/pm/knowledge/gotchas/…`; `decision` → `.claude/pm/knowledge/decisions.md` (dated, supersede-don't-delete); `domain` → `.claude/pm/knowledge/domain/…`; `process` → the profile / a rubric extension / `team-learnings.md`. Keep the hybrid commit path (own-knowledge-rides-the-PR, orphan fallback PR, scope-creep guard), never-record-secrets, and the ~5,000-word split-when-bloated rule (its output pattern is "index + per-domain files", pointing at `findings/index.md` as the example). Drop source-project PR numbers and `git add -f` (a source-project gitignore artifact) — say "commit the knowledge-doc edits in that same PR". |
 | `## Loop` step 1 (Scope + ideation branch + feasibility triage) | Keep; issue templates/labels from profile `## Tooling`; planner-restraint + triage-is-advisory rules verbatim; "GitHub issues are the single backlog" stays (D9). |
 | Loop step 2 (Design, complexity-gated) | Keep the gate concept; triggers become generic: "touches >1 data-model unit, a non-trivial algorithm, or a new external boundary". |
 | Loop step 3 (Implement) | Keep worktree-per-issue parallel dispatch + prior-attempt check (`gh pr list --search`). "Migration-index pre-allocation" generalizes to: "if the profile names shared-sequence resources, pre-allocate ranges per issue and record what each implementer touched." |
 | Loop step 4 (Review) | Keep consolidation (union, dedup, severity per the skill's ladder) + finding triage (actionable/defer/reject). Sizing: "per the `reviewing-prs` skill's Review tiers, driven by the profile's `## Risk classes`". Compliance org dispatch honors the profile's `## Compliance` mode (`full`/`minimal`/`off` — skip recorded). |
 | Loop step 5 (Address, 2-round cap, escalate-and-hold) | Keep verbatim; quality gate = the profile's `## Quality gate` list. |
-| Loop step 6 (merge-gate report contract, conditional-go verification, cleanup, harvest backstop) | Keep the 7-slot report contract and the merge/cleanup procedure verbatim; branch names/base from profile; keep the self-approve caveat conditionally: "if the reviewing account is the PR author, record completion via a structured comment instead of an approving review." Drop the CI-billing note (SourceApp-specific). |
+| Loop step 6 (merge-gate report contract, conditional-go verification, cleanup, harvest backstop) | Keep the 7-slot report contract and the merge/cleanup procedure verbatim; branch names/base from profile; keep the self-approve caveat conditionally: "if the reviewing account is the PR author, record completion via a structured comment instead of an approving review." Drop the CI-billing note (source-project-specific). |
 | Closing (lean context, triage every return) | Keep verbatim. |
 
 - [ ] **Step 3: Run the gate — expect PASS (headings + zero-coupling). Commit.**
@@ -563,7 +564,7 @@ Run → FAIL.
 Shared transformations (all three): paragraph 2 = the canonical safety paragraph verbatim (replaces every `.claude/docs/shared/agent-safety.md` reference); knowledge-base reads → "read `.claude/pm/profile.md`, then the knowledge stores under `.claude/pm/knowledge/` and (reviewers) `.claude/pm/findings/index.md` + matching topic files and your `.claude/pm/rubric/<org>.md` extension"; keep frontmatter `model: inherit`, reviewers keep `tools: Read, Grep, Glob, Bash, WebFetch` (no Edit/Write — state why, as the source does); keep the `## KNOWLEDGE` block and never-record-secrets line verbatim.
 
 Per-file:
-- `implementer.md`: the "SourceApp is production-grade… RLS/sharing" paragraph → "Honor the profile's `## Project` constraints and `## Security model`; do a basic self-check (authz guards, server-side input validation, secrets from env, the profile's named sensitive flows) — deep verification belongs to the review orgs." Procedure: branch off the profile's base branch per its naming (keep the `gh issue develop` + worktree guidance); quality gate = run the profile's `## Quality gate` list, never open a PR on a red blocking gate; keep tests-track-the-spec-in-the-same-PR verbatim; PR format from profile `## VCS`; keep return-value contract (PR URL + shared-sequence resources touched) and Address-review mode (incl. "PM may hand you accepted knowledge entries — commit them in the same push").
+- `implementer.md`: the source project's "production-grade… RLS/sharing" paragraph → "Honor the profile's `## Project` constraints and `## Security model`; do a basic self-check (authz guards, server-side input validation, secrets from env, the profile's named sensitive flows) — deep verification belongs to the review orgs." Procedure: branch off the profile's base branch per its naming (keep the `gh issue develop` + worktree guidance); quality gate = run the profile's `## Quality gate` list, never open a PR on a red blocking gate; keep tests-track-the-spec-in-the-same-PR verbatim; PR format from profile `## VCS`; keep return-value contract (PR URL + shared-sequence resources touched) and Address-review mode (incl. "PM may hand you accepted knowledge entries — commit them in the same push").
 - `pr-reviewer.md`: keep independence framing ("one of ≥2 instances, no shared context"), the two-signal trigger-matching rule (paths AND diff-content keywords) now pointed at `.claude/pm/findings/index.md`, the when-in-doubt-read-all-categories default, basic security/compliance detection deferring deep verdicts, comment format per the `reviewing-prs` skill, the one-line verdict return (`clean` / `changes-requested (<count>)`), and Feasibility-triage mode with its shallow-check target generalized to "the profile's `## Architecture map` (or a quick top-level listing when absent)".
 - `security-reviewer.md`: deep-review scope driven by the profile's `## Security model` + `## Risk classes` ("trace every new privileged path, protected route, input, secret, and the profile's named sensitive flows"); Feasibility-triage shallow-check target = the profile's `## Security model`; the rest mirrors pr-reviewer structurally.
 
@@ -597,9 +598,9 @@ done
 
 - [ ] **Step 2: Write the three files**
 
-`SKILL.md` transformations: frontmatter description drops "SourceApp" ("Use when reviewing a PR in a pm-loop-managed project…"). Severity ladder: verbatim, minus SourceApp examples ("payment/sharing miscalculation" → "a miscalculation in a profile-named sensitive flow"); keep disagreement-resolves-higher + PM-may-not-unilaterally-downgrade-security/compliance-findings. **Review tiers become the mechanism** (D6): baseline 2 code-reviewers + 1 security; each profile risk class that matches the diff (by path glob OR keyword-in-diff-content) applies its declared scaling; compliance runs per its mode; docs-only carve-out (1 code-reviewer, security may skip, both recorded) with the operational-docs caveat = "this plugin's own commands/agents/skills + everything under `.claude/pm/` + the profile's operational-docs globs — these keep ≥2 code reviewers and ≥1 narrowly-scoped security reviewer"; keep "when in doubt, scale up". Comment output: keep English + attribution line + "Suggested fix prompt" requirement, defining the format inline (one-paragraph contract) instead of referencing SourceApp's pull-requests.md. Keep "Reading the diff at the right ref" (drop `#108`), "Existing comments" thread-resolution rules (resolvable vs reply-only), and Approval with the conditional self-approve caveat as phrased in Task 6.
+`SKILL.md` transformations: frontmatter description drops the source-project name ("Use when reviewing a PR in a pm-loop-managed project…"). Severity ladder: verbatim, minus source-project examples ("payment/sharing miscalculation" → "a miscalculation in a profile-named sensitive flow"); keep disagreement-resolves-higher + PM-may-not-unilaterally-downgrade-security/compliance-findings. **Review tiers become the mechanism** (D6): baseline 2 code-reviewers + 1 security; each profile risk class that matches the diff (by path glob OR keyword-in-diff-content) applies its declared scaling; compliance runs per its mode; docs-only carve-out (1 code-reviewer, security may skip, both recorded) with the operational-docs caveat = "this plugin's own commands/agents/skills + everything under `.claude/pm/` + the profile's operational-docs globs — these keep ≥2 code reviewers and ≥1 narrowly-scoped security reviewer"; keep "when in doubt, scale up". Comment output: keep English + attribution line + "Suggested fix prompt" requirement, defining the format inline (one-paragraph contract) instead of referencing the source project's pull-requests.md. Keep "Reading the diff at the right ref" (drop `#108`), "Existing comments" thread-resolution rules (resolvable vs reply-only), and Approval with the conditional self-approve caveat as phrased in Task 6.
 
-`code-review.md`: keep Correctness/Conventions/Tests bullets generic (conventions per the profile's `## VCS`; tests-track-the-spec verbatim; the regression-test-at-the-lowest-observing-tier rule verbatim minus SourceApp PR numbers; blocker-when-a-profile-risk-class-demands-tests replaces the authz/RLS/sharing list). Recurring-findings section → "read `.claude/pm/findings/index.md` + matching topic files; match triggers by the two-signal rule". Keep the two generic audit patterns at the end ("Auditing a 'covers every X' claim" — generalized: grep every mutation site of the underlying resource, including DB triggers/hooks; "Reviewing a contract-change PR" — generalized from the error-shape section: verify producer side exhaustively via `git grep`, split consumer sites into body-readers vs fallback-sites) minus SourceApp specifics.
+`code-review.md`: keep Correctness/Conventions/Tests bullets generic (conventions per the profile's `## VCS`; tests-track-the-spec verbatim; the regression-test-at-the-lowest-observing-tier rule verbatim minus source-project PR numbers; blocker-when-a-profile-risk-class-demands-tests replaces the authz/RLS/sharing list). Recurring-findings section → "read `.claude/pm/findings/index.md` + matching topic files; match triggers by the two-signal rule". Keep the two generic audit patterns at the end ("Auditing a 'covers every X' claim" — generalized: grep every mutation site of the underlying resource, including DB triggers/hooks; "Reviewing a contract-change PR" — generalized from the error-shape section: verify producer side exhaustively via `git grep`, split consumer sites into body-readers vs fallback-sites) minus source-project specifics.
 
 `security.md`: the five bullets generalized — every new privileged data path covered by the project's access-control model (per the profile's `## Security model`); authn/authz on every protected route/action/mutation; server-side input validation; secrets never committed/logged, read from env; the profile's named sensitive flows checked for double-execution, reconciliation, per-actor authorization, and partial-failure handling.
 
@@ -722,7 +723,7 @@ require_heading agents/product-planner.md '^## Return-value contract'
 
 `compliance.md` (rubric): a scaffold mirroring security.md's shape — "the compliance org's rubric; the generic frame is: identify regulated data/copy/flows the diff touches, map each to a profile-declared domain, verify against the project's `.claude/pm/rubric/compliance.md` bright lines; no domains declared → nothing to apply."
 
-`product-planner.md`: keep the four-axis research method with axes resolved from the profile (`## Project` vision; existing surfaces per `## Architecture map` or exploration + `gh issue list --state all` dedup — "issues are the single backlog" stays; reference products per `## Planner research axes`; domain grounding from `.claude/pm/knowledge/domain/`). Keep `## Restraint` (zero-is-valid) and the output shape (ranked ≤5–8, quick-wins vs big-bets, S/M/L, risk flags incl. security/compliance surfaces) and `## Return-value contract` verbatim minus SourceApp references (reference-product names/issue numbers).
+`product-planner.md`: keep the four-axis research method with axes resolved from the profile (`## Project` vision; existing surfaces per `## Architecture map` or exploration + `gh issue list --state all` dedup — "issues are the single backlog" stays; reference products per `## Planner research axes`; domain grounding from `.claude/pm/knowledge/domain/`). Keep `## Restraint` (zero-is-valid) and the output shape (ranked ≤5–8, quick-wins vs big-bets, S/M/L, risk flags incl. security/compliance surfaces) and `## Return-value contract` verbatim minus source-project references (reference-product names, issue numbers).
 
 - [ ] **Step 3: Run the gate — expect PASS. Commit.**
 
@@ -799,7 +800,7 @@ Branch: `feat/m3-release` off updated `main`. One PR at the end of Task 13.
 - Modify: `scripts/check.sh` (`required=` += README.md — note README is exempt from the token audit by design)
 
 **Interfaces:**
-- Produces: the human-facing front door; the only place SourceApp may be mentioned, as a labeled origin example.
+- Produces: the human-facing front door; the only place the extraction origin may be described, as a labeled example.
 
 - [ ] **Step 1: Write README.md covering, in order:**
 
@@ -835,7 +836,7 @@ git add README.md scripts/check.sh && git commit -m "📝: [docs] README — ins
 - [ ] **Step 1: Scratch consumer setup (ask the human to approve repo creation)**
 
 ```bash
-mkdir -p <scratch-dir> && cd <scratch-dir>
+mkdir -p <scratch-dir>/pm-loop-scratch && cd <scratch-dir>/pm-loop-scratch
 git init -b main
 printf '#!/usr/bin/env bash\nset -e\ngrep -q "hello" hello.txt\necho gate-ok\n' > test.sh && chmod +x test.sh
 echo hello > hello.txt && git add -A && git commit -m "init scratch consumer"
@@ -849,7 +850,7 @@ gh repo create pm-loop-scratch --private --source . --push   # requires human OK
 3. `/pm-loop-init` in the scratch repo (gate command: `./test.sh` blocking; risk classes: empty; compliance: `off`) → coherent `.claude/pm/`; re-run → all-skipped no-op.
 4. E2E: `/pm-loop "add a goodbye.txt with the word goodbye and cover it in test.sh"` → watch scope → issue → implementer PR → reviews (2 code + 1 security; compliance skip recorded) → address → merge-gate report → human go → merge.
 5. Compliance modes: confirm the `off` skip was recorded in run docs; flip the scratch profile to `minimal`, run a trivial `/pm-loop` task, confirm exactly one frugal compliance pass.
-6. **Pre-public scrub (release gate — required before the repo is EVER made public or shared beyond the owner):** a grep of `main` for the owner's machine/org identifiers must come back empty. Today the committed plan doc carries absolute machine paths (functional for subagent execution; acceptable only while the repo stays private). Scrub or relocate them before any visibility change.
+6. **Pre-public scrub (release gate — required before the repo is EVER made public or shared beyond the owner):** no machine-specific absolute paths or personal identifiers may remain in tracked files — `git grep -inE '/(Users|home)/[A-Za-z]' main` must come back empty. (Scrubbed 2026-07-23: machine paths formerly in this plan doc were replaced with generic placeholders like `<source-project>` and `<scratch-dir>`.)
 
 Fix every failure on this branch (fix-forward; re-run the affected criterion). Append a dated "§12 acceptance results" note to the spec.
 
@@ -881,7 +882,7 @@ git tag v0.1.0 && git push origin v0.1.0
 
 ## Self-review notes (spec → plan coverage)
 
-- §4.1 layout → Tasks 1–2 (manifests, stubs), 4–9 (all commands/agents/skills/templates), 12 (README). `examples/sourceapp/` was marked "(선택)/optional" in the spec and is **deliberately dropped** (YAGNI + D10; the spec itself records the SourceApp origin).
+- §4.1 layout → Tasks 1–2 (manifests, stubs), 4–9 (all commands/agents/skills/templates), 12 (README). `examples/<source-project>/` was marked "(선택)/optional" in the spec and is **deliberately dropped** (YAGNI + D10; the spec itself records the extraction origin).
 - §5 profile contract → Task 4 (all nine slots, required/optional markers per rev 2).
 - §6 per-artifact generalization → Tasks 6–10 transformation tables.
 - §7 knowledge loop → Task 6 routing + Task 11 consistency check 5a.

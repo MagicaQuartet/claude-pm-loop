@@ -42,7 +42,7 @@ for f in "${required[@]}"; do
 done
 
 # 3. Zero-coupling audit — shipped plugin content must be project-agnostic.
-#    docs/ and README.md are exempt (may cite SourceApp as labeled examples).
+#    docs/ and README.md are exempt (may describe the extraction origin as labeled examples).
 pattern='supabase|drizzle|\brls\b|\bbun\b|\bbunx\b|src/app/api|src/db/schema'
 if grep -rinE "$pattern" commands agents skills templates 2>/dev/null; then
   echo "FAIL: project-specific token found in plugin content (see above)"; fail=1
