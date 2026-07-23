@@ -1,0 +1,3 @@
+# This repo's docs/ are intentionally tracked. Override the machine-global
+# ~/.gitignore_global rule (`**/docs/`) that would otherwise exclude them.
+!/docs/
