@@ -14,6 +14,7 @@ done
 
 # 2. Required files (append as milestones land)
 required=(
+  README.md
   commands/pm-loop.md
   commands/pm-loop-init.md
   templates/profile.md

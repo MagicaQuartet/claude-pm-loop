@@ -18,7 +18,7 @@ Read the `## Compliance` section of `.claude/pm/profile.md` FIRST — it sets yo
 It decides how much of this file you run:
 
 - **`off`** — return `n/a (compliance off)` immediately; do no further reads.
-- **`minimal`** — read `.claude/pm/rubric/compliance.md` and the matching `.claude/pm/knowledge/domain/` files for bright lines only; do a token-frugal pass over the diff against those bright lines; no web research unless the diff raises a genuine red flag. Then continue the Procedure as normal from the finding-framing step — post PR comments and return the standard one-line verdict (`clean` / `changes-requested (<count>)`).
+- **`minimal`** — fetch the PR and its diff first (Procedure step 1), then read `.claude/pm/rubric/compliance.md` and the matching `.claude/pm/knowledge/domain/` files for bright lines only; do a token-frugal pass over the diff against those bright lines; no web research unless the diff raises a genuine red flag. Then continue the Procedure as normal from the finding-framing step — post PR comments and return the standard one-line verdict (`clean` / `changes-requested (<count>)`).
 - **`full`** — run the full procedure below.
 
 ## Procedure

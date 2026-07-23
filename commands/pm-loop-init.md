@@ -12,13 +12,15 @@ Bootstrap the current repository as a pm-loop consumer.
 2. **Interview the user** for what you cannot infer, one question at a time:
    quality-gate commands (the literal list + blocking/advisory), risk classes
    (offer the profile template's examples as a starting shape), compliance
-   mode (`full`/`minimal`/`off`) and domains, base branch + merge style if
-   ambiguous.
-3. **Scaffold:** copy the plugin's `templates/` tree into `.claude/pm/` —
-   `profile.md` (filled with gathered + interviewed values; keep unanswered
-   optional sections as the template's guided placeholders), `knowledge/`
-   (all five stores), `findings/index.md`, `rubric/` (all three). Create an
-   empty `.claude/pm/plans/` directory.
+   mode (`full`/`minimal`/`off`) and domains, base branch if ambiguous.
+3. **Scaffold:** copy the tree at `${CLAUDE_PLUGIN_ROOT}/templates/` into
+   `.claude/pm/` — `profile.md` (filled with gathered + interviewed values;
+   keep unanswered optional sections as the template's guided placeholders),
+   `knowledge/` (all five stores), `findings/index.md`, `rubric/` (all
+   three). If `${CLAUDE_PLUGIN_ROOT}` is unset or unexpanded, locate the
+   installed plugin under `~/.claude/plugins/` (the marketplace cache) and
+   use its `templates/` instead. Create an empty `.claude/pm/plans/`
+   directory.
 4. **Gitignore:** ensure `.claude/pm/plans/` is git-ignored (append to
    `.gitignore` if needed); everything else under `.claude/pm/` is meant to
    be committed and reviewed.

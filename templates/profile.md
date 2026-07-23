@@ -16,9 +16,10 @@ target platforms).
 
 _Required._
 - Base branch (work branches off it, PRs merge into it): <!-- e.g. main -->
-- Merge style: <!-- e.g. squash -->
+- Merge style: squash (fixed in v1 — the loop's merge procedure always squash-merges).
 - Branch naming: <!-- e.g. <type>/issue-<n> -->
 - Commit & PR title format: <!-- e.g. gitmoji `<emoji>: [<scope>] <title>`, English -->
+- PR body conventions (optional): <!-- e.g. required sections; leave out if none -->
 
 ## Quality gate
 
@@ -45,16 +46,19 @@ _Optional._ Where authorization is enforced; any privileged
 connection/bypass situation; or `n/a` (e.g. a library with no auth surface).
 Drives the implementer's basic self-check and the security org's focus.
 
+- Named sensitive flows (money movement, settlement, account deletion, …), if any: <!-- list them — several review rules key on these -->
+
 ## Risk classes
 
 _Required (the list may be empty, but say so explicitly)._ Named classes of
 risky change that scale review. Path globs are optional — keyword-only
-classes are valid. Format, one per class:
+classes are valid; `tests-required` is optional and defaults to no. Format,
+one per class:
 
-- `<class-name>`: paths [<globs or —>], keywords [<terms>] → code-reviewers <n>, security [yes/no], compliance [yes/no]
+- `<class-name>`: paths [<globs or —>], keywords [<terms>] → code-reviewers <n>, security [yes/no], compliance [yes/no], tests-required [yes/no]
 
 <!-- e.g.:
-- `payment`: paths [internal/billing/**], keywords [charge, refund, settle] → code-reviewers 3, security yes, compliance yes
+- `payment`: paths [internal/billing/**], keywords [charge, refund, settle] → code-reviewers 3, security yes, compliance yes, tests-required yes
 - `auth`: paths [—], keywords [login, session, token, permission] → code-reviewers 3, security yes, compliance no
 -->
 
@@ -67,7 +71,7 @@ never count as "docs-only"): <!-- e.g. .claude/pm/** — add your own -->
 _Required._
 - Mode: <!-- full | minimal | off -->
   - `full` — compliance-reviewer runs whenever a risk class with `compliance yes` matches.
-  - `minimal` — one token-frugal pass, only on the highest-risk classes or explicit request.
+  - `minimal` — one token-frugal pass, only on the highest-risk classes, as judged by the PM from the profile's classes, or explicit request.
   - `off` — never dispatched; the loop records the skip.
 - Domains (scope the rubric; required unless mode is off): <!-- e.g. GDPR, PCI-DSS -->
 
