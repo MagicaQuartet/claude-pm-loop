@@ -20,7 +20,7 @@ Bootstrap the current repository as a pm-loop consumer.
    keep unanswered optional sections — including `## Review diversity`, which
    is never interviewed — as the template's guided placeholders),
    `knowledge/` (all five stores), `findings/index.md`, `rubric/` (all
-   three). If `${CLAUDE_PLUGIN_ROOT}` is unset or unexpanded, locate the
+   four). If `${CLAUDE_PLUGIN_ROOT}` is unset or unexpanded, locate the
    installed plugin under `~/.claude/plugins/` (the marketplace cache) and
    use its `templates/` instead. Create an empty `.claude/pm/plans/`
    directory.

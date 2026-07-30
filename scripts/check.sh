@@ -38,6 +38,8 @@ required=(
   skills/reviewing-prs/code-review.md
   skills/reviewing-prs/security.md
   skills/reviewing-prs/compliance.md
+  skills/reviewing-prs/product-ethics.md
+  templates/rubric/product-ethics.md
 )
 for f in "${required[@]}"; do
   [ -f "$f" ] || { echo "FAIL: missing required file $f"; fail=1; }
@@ -81,9 +83,17 @@ require_heading agents/compliance-reviewer.md '^## Feasibility-triage mode'
 require_heading agents/product-planner.md '^## Restraint'
 require_heading agents/product-planner.md '^## Return-value contract'
 
-for h in '^## Severity ladder' '^## Review tiers' '^## Re-review scope' '^## Lens assignment' '^## Adversarial pass' '^## Comment output' '^## Reading the diff at the right ref' '^## Existing comments' '^## Approval'; do
+for h in '^## Severity ladder' '^## Review tiers' '^## Re-review scope' '^## Lens assignment' '^## Adversarial pass' '^## Product ethics' '^## Comment output' '^## Reading the diff at the right ref' '^## Existing comments' '^## Approval'; do
   require_heading skills/reviewing-prs/SKILL.md "$h"
 done
+
+for h in '^## What counts' '^## Two-tier response' '^## For reviewers'; do
+  require_heading skills/reviewing-prs/product-ethics.md "$h"
+done
+
+# product-ethics doctrine stays lean — every role that reads it pays for its length (spec D29)
+pe_words=$(wc -w < skills/reviewing-prs/product-ethics.md 2>/dev/null | tr -d ' ')
+[ -n "$pe_words" ] && [ "$pe_words" -le 550 ] || { echo "FAIL: product-ethics.md is '${pe_words:-missing}' words (budget <=550)"; fail=1; }
 
 # 5. Cross-file consistency
 # 5a. Loop routes knowledge to every canonical consumer store
@@ -114,6 +124,11 @@ grep -qF 'Lens assignment' commands/pm-loop.md || { echo "FAIL: pm-loop.md does 
 grep -qF 'Adversarial pass' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference Adversarial pass"; fail=1; }
 # 5g. W3b: model-mix knob wired
 grep -qF 'Review diversity' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference Review diversity"; fail=1; }
+# 5j. Product-ethics guardrail: reviewer detection wired
+grep -qF 'product-ethics' agents/pr-reviewer.md || { echo "FAIL: pr-reviewer.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' agents/product-planner.md || { echo "FAIL: product-planner.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' agents/implementer.md || { echo "FAIL: implementer.md does not reference product-ethics"; fail=1; }
 # 5h. W4a: knowledge triage is mechanical
 grep -qF 'Category test' commands/pm-loop.md || { echo "FAIL: pm-loop.md missing Category test"; fail=1; }
 grep -qF 'Verified pointer' commands/pm-loop.md || { echo "FAIL: pm-loop.md missing Verified pointer"; fail=1; }

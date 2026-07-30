@@ -62,8 +62,9 @@ and run the same two commands above.
    `.claude/pm/`: the filled `profile.md`, the knowledge-base skeleton
    (`knowledge/invariants/`, `knowledge/gotchas/`, `knowledge/decisions.md`,
    `knowledge/domain/`, `knowledge/team-learnings.md`), `findings/index.md`,
-   and `rubric/` stubs for the three review orgs. It never overwrites an
-   existing file — re-running is a safe no-op that just reports state.
+   and `rubric/` stubs for the three review orgs plus the product-ethics
+   doctrine extension. It never overwrites an existing file — re-running is
+   a safe no-op that just reports state.
 2. Commit the scaffold (everything under `.claude/pm/` except `plans/`, which
    is git-ignored — that directory holds ephemeral, resumable run state).
 3. Run `/pm-loop "<your task, in natural language>"`.
@@ -101,6 +102,25 @@ double confirm is intentional. Caveats: this is defense-in-depth, not a
 security boundary — it matches command patterns, and `bypassPermissions`
 weakens it. Repos without a pm-loop profile are unaffected; the hook stays
 silent there.
+
+## Product-ethics guardrail
+
+The loop never *originates* a dark pattern — the `product-planner` won't propose
+one, the `implementer` won't introduce one, and the code-review org detects any
+that slip through — and when *you* ask for one, it pushes back and asks you to
+reconsider instead of silently complying. The response is two-tier: **deceptive
+or illegal** patterns (hidden charges, fake scarcity, forged consent, disguised
+ads, obstruction of a legally-required easy exit) are **declined**; **manipulative
+but legal** patterns (confirmshaming, nagging, misdirection, mild urgency) are
+**sent back** — the pattern named, the user harm and business risk explained, an
+honest alternative proposed — and built only on your explicit reconfirmation,
+which the loop records as a dated decision.
+
+This guardrail is **always on**: unlike compliance mode, there is no profile
+switch to disable it. Legitimate persuasion (a real deadline's countdown, honest
+defaults, clear opt-ins, genuine social proof) is not a dark pattern and is not
+blocked. Projects **extend, never override** the doctrine with domain-specific
+examples and bright lines in `.claude/pm/rubric/product-ethics.md`.
 
 ## How updates work
 

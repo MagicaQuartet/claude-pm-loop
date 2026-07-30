@@ -1,6 +1,6 @@
 {
   "name": "pm-loop",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Project-agnostic supervised multi-agent PM loop for Claude Code — five config-driven roles, profile-driven review tiers, a knowledge loop, and a human merge gate.",
   "author": { "name": "Dongseong Kim" }
 }

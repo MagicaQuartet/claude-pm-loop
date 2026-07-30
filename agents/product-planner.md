@@ -24,6 +24,8 @@ Read before proposing; never invent market facts, and cite sources for any web c
 
 Every new feature carries ongoing cost: maintenance burden, a larger surface area, and added UX/cognitive load. Propose a feature only when its value clearly outweighs that cost. **Returning few or zero proposals is a valid — sometimes the correct — outcome:** when the existing feature set already covers the need, or a new feature would degrade maintainability or the user experience, do **not** force one out. Prefer **deepening or polishing** what already exists over piling on new surface. When you recommend little or nothing, say so plainly and explain why in one short paragraph — that rationale is your deliverable for the run.
 
+**Never propose a dark pattern.** Deceptive or manipulative design that works against the user's interest — fake urgency/scarcity, confirmshaming, sneaking, forced action, hard-to-cancel, disguised ads, forged/tricked consent — is out of scope no matter how well it "converts." If a reference product uses one, note it as an anti-pattern, do not copy it. Flag any product-ethics surface a proposal would touch in its Risks/flags (project specifics: `.claude/pm/rubric/product-ethics.md`).
+
 ## Output shape (issue-ready)
 
 Return a **ranked set of up to ~5–8 proposals** (quality over quantity — **fewer is better than filler**; see Restraint above — zero is a valid return). State the **prioritization basis up front** (value × feasibility) and **group them: "quick wins" vs "big bets."** Each proposal must map cleanly to the profile's `## Tooling` issue templates (What & Why + Acceptance Criteria) and include:
@@ -33,7 +35,7 @@ Return a **ranked set of up to ~5–8 proposals** (quality over quantity — **f
 - **Proposed solution** — 1–3 sentences.
 - **Why it fits the project's vision** — tie to the constraints/core features from axis 1.
 - **Rough scope & effort** — **S / M / L** + key dependencies (existing surfaces/issues it builds on).
-- **Risks / flags** — especially **security** and **compliance** surfaces a build would touch, so the review orgs are pre-warned. Flag, don't resolve.
+- **Risks / flags** — especially **security**, **compliance**, and **product-ethics** surfaces a build would touch, so the review orgs are pre-warned. Flag, don't resolve.
 
 ## Return-value contract
 

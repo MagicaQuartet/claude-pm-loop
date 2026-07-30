@@ -6,7 +6,7 @@
       "name": "pm-loop",
       "source": "./",
       "description": "Supervised multi-agent PM loop: scope → implement → review → address → human-gated merge, driven by a per-project profile with a continuous knowledge loop.",
-      "version": "0.2.0"
+      "version": "0.3.0"
     }
   ]
 }

@@ -20,7 +20,7 @@ Every finding carries exactly one severity. Use these definitions across all org
 
 **Disagreement resolves to the higher severity** when reviewers (or orgs) rate the same finding differently — unless the PM documents why the lower rating wins. The PM records the resolved severity in the run doc.
 
-**The PM may not unilaterally downgrade a security- or compliance-org finding.** A finding the **security or compliance org** rated blocker or major cannot be reclassified below "major" without that org's recorded concurrence in the run doc. (Other downgrades follow the disagreement rule above.)
+**The PM may not unilaterally downgrade a security- or compliance-org finding.** A finding the **security or compliance org** rated blocker or major cannot be reclassified below "major" without that org's recorded concurrence in the run doc. (Other downgrades follow the disagreement rule above.) A **Tier-1 dark-pattern finding** (deceptive/illegal — see `product-ethics.md`) carries the same protection: not reclassified below major without the raising org's recorded concurrence.
 
 ## Review tiers (which orgs run, and how many)
 
@@ -71,6 +71,10 @@ Applied by the security org (`security-reviewer`). Full rubric: `security.md`.
 ## Compliance
 
 Applied by the compliance org (`compliance-reviewer`), dispatched per the profile's `## Compliance` mode. Full rubric: `compliance.md`.
+
+## Product ethics
+
+Applied by the code-review org (`pr-reviewer`), **always** — explicitly **not** gated by the profile's `## Compliance` mode, so `Compliance: off` never removes it. It is **trigger-gated**: every review runs a cheap signal scan — does the diff add or change user-facing copy, consent, defaults, or flows? On a **miss**, record a one-line skip and read no further; on a **hit**, read the doctrine and apply it. Full taxonomy, the boundary test, the two-tier response, and severity mapping: `product-ethics.md`.
 
 ## Comment output
 
