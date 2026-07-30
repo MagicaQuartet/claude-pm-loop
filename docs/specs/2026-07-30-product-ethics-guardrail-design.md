@@ -1,7 +1,7 @@
 # Design: product-ethics guardrail — anti-dark-pattern across the pm-loop
 
 - **Date:** 2026-07-30
-- **Status:** Draft — direction approved in brainstorming (2026-07-30); awaiting spec review before the implementation plan
+- **Status:** Implemented — shipped in v0.3.0 (merged via PR #7, 2026-07-30)
 - **Author:** Dongseong Kim (with Claude Code)
 - **Repo:** `claude-pm-loop` (builds on the v0.2 hardening design, `2026-07-23-v0.2-hardening-design.md`)
 

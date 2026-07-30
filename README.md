@@ -62,9 +62,9 @@ and run the same two commands above.
    `.claude/pm/`: the filled `profile.md`, the knowledge-base skeleton
    (`knowledge/invariants/`, `knowledge/gotchas/`, `knowledge/decisions.md`,
    `knowledge/domain/`, `knowledge/team-learnings.md`), `findings/index.md`,
-   and `rubric/` stubs for the three review orgs plus the product-ethics
-   doctrine extension. It never overwrites an existing file — re-running is
-   a safe no-op that just reports state.
+   and `rubric/` stubs — `code-review`, `security`, `compliance`, and the
+   `product-ethics` doctrine extension. It never overwrites an existing file
+   — re-running is a safe no-op that just reports state.
 2. Commit the scaffold (everything under `.claude/pm/` except `plans/`, which
    is git-ignored — that directory holds ephemeral, resumable run state).
 3. Run `/pm-loop "<your task, in natural language>"`.

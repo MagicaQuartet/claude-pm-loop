@@ -92,8 +92,12 @@ for h in '^## What counts' '^## Two-tier response' '^## For reviewers'; do
 done
 
 # product-ethics doctrine stays lean — every role that reads it pays for its length (spec D29)
-pe_words=$(wc -w < skills/reviewing-prs/product-ethics.md 2>/dev/null | tr -d ' ')
-[ -n "$pe_words" ] && [ "$pe_words" -le 550 ] || { echo "FAIL: product-ethics.md is '${pe_words:-missing}' words (budget <=550)"; fail=1; }
+if [ -f skills/reviewing-prs/product-ethics.md ]; then
+  pe_words=$(wc -w < skills/reviewing-prs/product-ethics.md | tr -d ' ')
+  [ "$pe_words" -le 550 ] || { echo "FAIL: product-ethics.md is $pe_words words (budget <=550)"; fail=1; }
+else
+  echo "FAIL: skills/reviewing-prs/product-ethics.md missing (word-count check)"; fail=1
+fi
 
 # 5. Cross-file consistency
 # 5a. Loop routes knowledge to every canonical consumer store
@@ -124,11 +128,6 @@ grep -qF 'Lens assignment' commands/pm-loop.md || { echo "FAIL: pm-loop.md does 
 grep -qF 'Adversarial pass' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference Adversarial pass"; fail=1; }
 # 5g. W3b: model-mix knob wired
 grep -qF 'Review diversity' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference Review diversity"; fail=1; }
-# 5j. Product-ethics guardrail: reviewer detection wired
-grep -qF 'product-ethics' agents/pr-reviewer.md || { echo "FAIL: pr-reviewer.md does not reference product-ethics"; fail=1; }
-grep -qF 'product-ethics' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference product-ethics"; fail=1; }
-grep -qF 'product-ethics' agents/product-planner.md || { echo "FAIL: product-planner.md does not reference product-ethics"; fail=1; }
-grep -qF 'product-ethics' agents/implementer.md || { echo "FAIL: implementer.md does not reference product-ethics"; fail=1; }
 # 5h. W4a: knowledge triage is mechanical
 grep -qF 'Category test' commands/pm-loop.md || { echo "FAIL: pm-loop.md missing Category test"; fail=1; }
 grep -qF 'Verified pointer' commands/pm-loop.md || { echo "FAIL: pm-loop.md missing Verified pointer"; fail=1; }
@@ -136,6 +135,11 @@ grep -qF 'Verified pointer' commands/pm-loop.md || { echo "FAIL: pm-loop.md miss
 pv=$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])' 2>/dev/null)
 mv=$(python3 -c 'import json,sys;d=json.load(open(".claude-plugin/marketplace.json"));print(d["plugins"][0]["version"])' 2>/dev/null)
 [ -n "$pv" ] && [ "$pv" = "$mv" ] || { echo "FAIL: plugin.json version ($pv) != marketplace.json version ($mv)"; fail=1; }
+# 5j. Product-ethics guardrail: reviewer detection wired
+grep -qF 'product-ethics' agents/pr-reviewer.md || { echo "FAIL: pr-reviewer.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' commands/pm-loop.md || { echo "FAIL: pm-loop.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' agents/product-planner.md || { echo "FAIL: product-planner.md does not reference product-ethics"; fail=1; }
+grep -qF 'product-ethics' agents/implementer.md || { echo "FAIL: implementer.md does not reference product-ethics"; fail=1; }
 
 # 6. Merge-gate hook: syntax, executability, manifest wiring, smoke tests (spec §4, §11.2)
 if [ -f scripts/merge-gate-hook.sh ]; then
